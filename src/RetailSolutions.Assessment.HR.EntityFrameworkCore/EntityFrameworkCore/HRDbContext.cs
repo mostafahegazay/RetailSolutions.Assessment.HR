@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RetailSolutions.Assessment.HR.Entities;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
@@ -50,6 +52,8 @@ public class HRDbContext :
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
+    public DbSet<TimeLog> TimeLogs { get; set; }
+    public DbSet<Shift> Shifts { get; set; }
     #endregion
 
     public HRDbContext(DbContextOptions<HRDbContext> options)
@@ -81,5 +85,25 @@ public class HRDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
+
+        /* Configure your own tables/entities inside here */
+
+        builder.Entity<TimeLog>(b =>
+        {
+            b.ToTable(HRConsts.DbTablePrefix + "TimeLog", HRConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.HasKey(b => b.Id);
+            b.HasOne(x => x.Creator).WithMany().HasForeignKey(x => x.CreatorId);
+            b.Property(x => x.FromTime).IsRequired();
+            b.Property(x => x.ToTime).IsRequired();
+            b.Property(x => x.CreatorId).IsRequired();
+        });
+
+        builder.Entity<Shift>(b =>
+        {
+            b.ToTable(HRConsts.DbTablePrefix + "Shift", HRConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.HasKey(b => b.Id);
+        });
     }
 }
